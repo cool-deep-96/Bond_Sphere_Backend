@@ -39,7 +39,8 @@ userRoutes.route('/createuser').post(upload.single('urlToImg'), userController.c
 userRoutes.route('/login').post(userController.login);
 userRoutes.route('/logout').post(authMiddleware.tokenCheck, userController.logout);
 userRoutes.route('/getAllUsers').get(authMiddleware.tokenCheck, userController.allUsers);
-// userRoutes.put('/updateuser/:id', userController.updateUser);
+userRoutes.route('/getuser/:userId').get(authMiddleware.tokenCheck, userController.getuser);
+userRoutes.route('/updateuser/:userId').put(authMiddleware.tokenCheck, userController.updateUser);
 userRoutes.route('/followuser/:userId').put(authMiddleware.tokenCheck, userController.followUser);
 
 

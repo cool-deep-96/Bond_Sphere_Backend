@@ -18,6 +18,17 @@ const upload = async (fileURLToPath) => {
     return response;
 }
 
+const getuser =  async (req, res) => {
+    try{
+        const Users = await User.find({userId : req.params.userId}).select('-password -updatedAt -createdAt -__v');
+        res.status(200).json(Users);
+    
+    } catch(err){
+        console.log(err);
+        res.status(500).json("error");
+    }
+}
+
 
 const createUser = async (req, res) => {
     try {
@@ -195,11 +206,22 @@ const followUser = async (req, res) => {
     }
 };
 
+const updateUser = async (req, res) => {
+    if(req.params.userId != req.user.userId){
+        res.status(400).json({
+            message: " you can't update other's details"
+        })
+    }
+    const bio = req.body.bio;
+
+}
+
 module.exports = {
     createUser,
     login,
     logout,
-    // updateUser,
+    updateUser,
     followUser,
-    allUsers
+    allUsers,
+    getuser
 }

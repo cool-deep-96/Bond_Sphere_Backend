@@ -8,7 +8,6 @@ const upload = async (fileURLToPath) => {
   const response = await cloudinary.uploader.upload(fileURLToPath, {folder: "BOND_SPHERE/POSTS"}, (error, result) => {
       if(error){
           console.log("error", error);
-          throw new Error (error);
       }
       console.log("result ", result);
       return result;
@@ -28,15 +27,17 @@ const createPost = async (req, res) => {
     }
 
     const fileURLToPath = `public/allPostsImg/${req.file.filename}`;
-        const result = await upload(fileURLToPath);
-        console.log("fgfg",result);
-        fs.unlink(fileURLToPath, (error) =>{
-            if(error){
-                throw new Error({
-                    message: "internal server error"
-                })
-            }
+
+    const result = await upload(fileURLToPath);
+    console.log("fgfg",result);
+    fs.unlink(fileURLToPath, (error) =>{
+        if(error){
+            throw new Error({
+              message: "internal server error"
+          })
+        }
     });
+
     const newPost = new Post({
       userId: req.user.userId,
       urlToImg: result.url,
@@ -73,6 +74,7 @@ const updatePost = async (req, res) => {
 const getAllPosts = async (req, res) => {
   try {
     const posts = await Post.find({}).select('-createdAt -updatedAt -__v');
+    const user = await User.findOne({userId: req.user.userId}).select('userId urlToImg');
     
     // const postsAndProfile = await posts.map(async (post) => {
     //   const profileUrl = await User.find({userId: posts.userId}).select('urlToImg');
@@ -83,7 +85,10 @@ const getAllPosts = async (req, res) => {
     // console.log(postsAndProfile)
 
     res.status(200).json(
-      posts
+      {
+        user: user,
+        post: posts
+      }
       );
 
   } catch (err) {
@@ -122,7 +127,8 @@ const likePost = async (req, res) => {
             likes: { userId: req.user.userId }
           }
         });
-      res.status(200).json("The post has been liked");
+        const updatedPost = await Post.findOne({_id: post.id}).select('-createdAt -updatedAt -__v');
+        res.status(200).json(updatedPost);
     } else {
       await Post.updateOne({ _id: post._id },
         {
@@ -130,7 +136,9 @@ const likePost = async (req, res) => {
             likes: { userId: req.user.userId }
           }
         });
-      res.status(200).json("The post has been disliked");
+        
+        const updatedPost = await Post.findOne({_id: post.id}).select('-createdAt -updatedAt -__v');
+        res.status(200).json(updatedPost);
     }
   } catch (err) {
     console.log(err);
@@ -154,7 +162,9 @@ const commentPost = async (req, res) => {
       }
 
     });
-    res.status(200).json("comment added successfully");
+
+   const updatedPost = await Post.findOne({_id: req.params.id}).select('-createdAt -updatedAt -__v');
+    res.status(200).json(updatedPost);
 
   } catch (err) {
     console.log(err)
